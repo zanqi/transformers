@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Qwen2.5-Omni — Paper × Source Code Study Guide</title>
+<style>
+  :root {
+    --bg: #fdfdfb;
+    --fg: #1c2024;
+    --muted: #5b6470;
+    --accent: #b45309;
+    --accent-soft: #fff7ed;
+    --paper: #eff6ff;
+    --paper-border: #3b82f6;
+    --code-bg: #f4f4f5;
+    --code-border: #a1a1aa;
+    --why-bg: #f0fdf4;
+    --why-border: #16a34a;
+    --check-bg: #fef9ec;
+    --check-border: #d97706;
+    --card-border: #e4e4e7;
+    --mono-bg: #f4f4f5;
+    --link: #1d4ed8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181d;
+      --fg: #e6e6e3;
+      --muted: #9aa3af;
+      --accent: #f59e0b;
+      --accent-soft: #2b2013;
+      --paper: #17233a;
+      --paper-border: #60a5fa;
+      --code-bg: #1f2126;
+      --code-border: #52525b;
+      --why-bg: #12261a;
+      --why-border: #4ade80;
+      --check-bg: #2a2110;
+      --check-border: #fbbf24;
+      --card-border: #33363d;
+      --mono-bg: #24262c;
+      --link: #93c5fd;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0;
+    background: var(--bg); color: var(--fg);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  }
+  main { max-width: 62rem; margin: 0 auto; padding: 2rem 1.25rem 6rem; }
+  h1 { font-size: 2rem; line-height: 1.2; margin: 0.5rem 0 0.25rem; }
+  h2 { font-size: 1.45rem; margin-top: 3rem; padding-top: 1rem; border-top: 3px solid var(--accent); }
+  h2 .day { display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); }
+  h3 { font-size: 1.1rem; margin-top: 1.75rem; }
+  a { color: var(--link); }
+  p.lede { color: var(--muted); font-size: 1.05rem; margin-top: 0; }
+  code, pre {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: 0.85em;
+  }
+  code { background: var(--mono-bg); padding: 0.1em 0.35em; border-radius: 4px; }
+  pre {
+    background: var(--mono-bg); border: 1px solid var(--card-border);
+    border-radius: 8px; padding: 0.9rem 1rem; overflow-x: auto; line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; }
+  .box { border-left: 4px solid; border-radius: 0 8px 8px 0; padding: 0.75rem 1rem; margin: 1rem 0; }
+  .box > :first-child { margin-top: 0; } .box > :last-child { margin-bottom: 0; }
+  .box .tag { display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.3rem; }
+  .paper-box  { background: var(--paper); border-color: var(--paper-border); }
+  .paper-box .tag { color: var(--paper-border); }
+  .code-box   { background: var(--code-bg); border-color: var(--code-border); }
+  .code-box .tag { color: var(--muted); }
+  .why-box    { background: var(--why-bg); border-color: var(--why-border); }
+  .why-box .tag { color: var(--why-border); }
+  .check-box  { background: var(--check-bg); border-color: var(--check-border); }
+  .check-box .tag { color: var(--check-border); }
+  details { margin: 0.5rem 0; }
+  details summary { cursor: pointer; font-weight: 600; }
+  details[open] summary { margin-bottom: 0.4rem; }
+  table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.92rem; }
+  .table-wrap { overflow-x: auto; }
+  th, td { border: 1px solid var(--card-border); padding: 0.45rem 0.7rem; text-align: left; vertical-align: top; }
+  th { background: var(--mono-bg); }
+  .toc {
+    background: var(--accent-soft); border: 1px solid var(--card-border);
+    border-radius: 10px; padding: 1rem 1.5rem; margin: 1.5rem 0;
+  }
+  .toc ol { margin: 0.5rem 0 0; padding-left: 1.3rem; }
+  .toc li { margin: 0.3rem 0; }
+  .fileref { white-space: nowrap; }
+  .arch { display: flex; flex-wrap: wrap; gap: 0.6rem; margin: 1.25rem 0; align-items: stretch; }
+  .arch .node {
+    flex: 1 1 12rem; border: 1.5px solid var(--card-border); border-radius: 10px;
+    padding: 0.7rem 0.9rem; background: var(--mono-bg); min-width: 11rem;
+  }
+  .arch .node b { display: block; margin-bottom: 0.2rem; }
+  .arch .node small { color: var(--muted); }
+  .kbd { font-size: 0.8rem; color: var(--muted); }
+  .footnote { color: var(--muted); font-size: 0.88rem; }
+  blockquote { border-left: 3px solid var(--card-border); margin: 1rem 0; padding: 0.1rem 1rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Qwen2.5-Omni: Paper × Source Code Study Guide</h1>
+<p class="lede">A seven-session curriculum pairing the <em>Qwen2.5-Omni Technical Report</em> (arXiv:2503.20215) with its
+🤗 Transformers implementation in <code>src/transformers/models/qwen2_5_omni/</code>. Written for someone with a solid
+transformer/LLM background who is new to omni-modal (audio + vision + speech-output) models, with an emphasis on
+<em>why</em> each design choice was made.</p>
+
+<div class="toc">
+<b>How to use this guide</b>
+<p>Each session has four kinds of blocks: <b style="color:var(--paper-border)">📄 Paper</b> (what to read),
+<b>🔍 Code</b> (what to open, with file:line anchors), <b style="color:var(--why-border)">💡 Why</b> (design rationale),
+and <b style="color:var(--check-border)">✅ Self-check</b> (questions with hidden answers — click to reveal).
+Budget roughly 1.5–2.5 hours per session.</p>
+<ol>
+  <li><a href="#s1">Orientation: the three-brain model and the code map</a></li>
+  <li><a href="#s2">Perception: the processor and the audio/vision encoders</a></li>
+  <li><a href="#s3">TMRoPE: time-aligned multimodal position embeddings</a></li>
+  <li><a href="#s4">Thinker: multimodal understanding and text generation</a></li>
+  <li><a href="#s5">Talker: dual-track speech-token generation</a></li>
+  <li><a href="#s6">Token2Wav: flow-matching DiT + BigVGAN vocoder</a></li>
+  <li><a href="#s7">Training recipe, evaluation, and running it yourself</a></li>
+</ol>
+</div>
+
+<div class="code-box box">
+<span class="tag">🔍 Files you will live in</span>
+<div class="table-wrap"><table>
+<tr><th>File</th><th>Lines</th><th>Role</th></tr>
+<tr><td class="fileref"><code>modular_qwen2_5_omni.py</code></td><td>3,929</td><td><b>The file to read and edit.</b> Declares the model by inheriting from Qwen2.5-VL, Qwen2-Audio, and Llama components; <code>make fix-repo</code> expands it into the standalone files below.</td></tr>
+<tr><td class="fileref"><code>modeling_qwen2_5_omni.py</code></td><td>4,043</td><td><b>Generated — never edit.</b> The self-contained model that actually gets imported. Useful when you want to see inherited code inlined (e.g. <code>Qwen2_5OmniDecoderLayer</code> at modeling:1531).</td></tr>
+<tr><td class="fileref"><code>configuration_qwen2_5_omni.py</code></td><td>663</td><td>Generated. Nine config classes forming a tree: one root, three sub-models, five leaves.</td></tr>
+<tr><td class="fileref"><code>processing_qwen2_5_omni.py</code></td><td>377</td><td>Hand-written processor: turns raw text/image/video/audio into model tensors and expands multimodal placeholder tokens.</td></tr>
+</table></div>
+<p class="footnote">All line references below point into <code>modular_qwen2_5_omni.py</code> unless marked
+<code>processing:</code> or <code>config:</code>. Line numbers are for the repo state at the time of writing; if they
+drift, search for the symbol name.</p>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="s1"><span class="day">Session 1</span>Orientation: the three-brain model and the code map</h2>
+
+<div class="paper-box box">
+<span class="tag">📄 Paper reading</span>
+<p>Abstract, §1 Introduction, §2.1 Overview (Figure 2). Skim §6 Conclusion. Goal: be able to state, without looking,
+the three challenges the paper claims an omni-model must solve and which mechanism answers each.</p>
+</div>
+
+<h3>The problem statement</h3>
+<p>Qwen2.5-Omni is one end-to-end model that <em>perceives</em> text, images, audio, and video and <em>generates</em>
+both text and natural speech, in a streaming fashion. The paper frames three challenges, each mapped to a mechanism:</p>
+<div class="table-wrap"><table>
+<tr><th>Challenge</th><th>Mechanism</th><th>Session</th></tr>
+<tr><td>Joint training across modalities, especially syncing video frames with their audio track in time</td><td><b>TMRoPE</b> (Time-aligned Multimodal RoPE) + time-interleaving of audio/video chunks</td><td>3</td></tr>
+<tr><td>Text output and speech output interfering with each other during training</td><td><b>Thinker–Talker</b> split: one LLM produces text, a second autoregressive model produces speech codec tokens from the first one's hidden states</td><td>5</td></tr>
+<tr><td>Real-time streaming: low first-packet latency for both understanding and speech synthesis</td><td>Block-wise (2 s) encoder attention for prefill; <b>sliding-window DiT</b> + chunked BigVGAN for codec→waveform</td><td>2 &amp; 6</td></tr>
+</table></div>
+
+<h3>The architecture at a glance</h3>
+<div class="arch">
+  <div class="node"><b>Audio encoder</b><small>Whisper-large-v3 init, 2 s block attention, 1 token ≈ 40 ms → 3584-d</small></div>
+  <div class="node"><b>Vision encoder</b><small>Qwen2.5-VL ViT (~675 M), patch 14, 2×2 merge, window + full attention → 3584-d</small></div>
+  <div class="node"><b>Thinker</b><small>Qwen2.5-7B decoder (28 layers, 3584 hidden, GQA 28/4). Emits <em>text tokens</em> + hidden states</small></div>
+  <div class="node"><b>Talker</b><small>Dual-track AR decoder. Consumes Thinker hidden states + sampled text embeddings; emits <em>codec tokens</em> (vocab 8448)</small></div>
+  <div class="node"><b>Token2Wav</b><small>Flow-matching DiT (22 layers, block attention) → 80-bin mel; BigVGAN → waveform</small></div>
+</div>
+<p>The paper's metaphor: the Thinker is the brain, the Talker is the mouth. Both share the same historical context and
+are trained end-to-end together — the Talker is not a bolt-on TTS system reading the Thinker's final text; it reads the
+Thinker's <em>internal representations</em> as they are produced.</p>
+
+<div class="code-box box">
+<span class="tag">🔍 Code tour — the composition root</span>
+<p>Open <code>modular_qwen2_5_omni.py:3595</code>, class <code>Qwen2_5OmniForConditionalGeneration</code>:</p>
+<pre><code>self.thinker = Qwen2_5OmniThinkerForConditionalGeneration(config.thinker_config)   # :3606
+self.has_talker = config.enable_audio_output                                       # :3608
+if config.enable_audio_output:
+    self.enable_talker()          # builds self.talker + self.token2wav  :3614-3618</code></pre>
+<ul>
+<li><code>enable_talker()</code> / <code>disable_talker()</code> (:3614, :3626) — audio output is optional; drop the Talker + Token2Wav (~3 B params of the ~10 B total footprint) if you only need text.</li>
+<li><code>token2wav.float()</code> (:3617) — the vocoder pipeline is pinned to fp32 (you'll see why in Session 6).</li>
+<li><code>from_pretrained</code> override (:3633) — downloads an extra non-weights file, <code>spk_dict.pt</code>, holding per-speaker voice conditioning (<code>load_speakers</code>, :3620).</li>
+<li>Config tree in <code>configuration_qwen2_5_omni.py</code>: <code>Qwen2_5OmniConfig</code> (config:564) →
+<code>thinker_config</code> (itself holding <code>audio_config</code>, <code>vision_config</code>, <code>text_config</code>),
+<code>talker_config</code>, <code>token2wav_config</code> (holding <code>dit_config</code>, <code>bigvgan_config</code>).
+Note <code>get_text_config()</code> (config:638) tunnels through to the Thinker's text config — used by vLLM.</li>
+</ul>
+</div>
+
+<div class="code-box box">
+<span class="tag">🔍 Code tour — how a modular file works</span>
+<p>Notice the imports around <code>modular_qwen2_5_omni.py:55-65</code>: the file inherits
+<code>Qwen2_5_VLVisionBlock</code>, <code>Qwen2AudioEncoderLayer</code>, <code>Qwen2VLRotaryEmbedding</code>,
+<code>LlamaRotaryEmbedding</code>… Cross-model inheritance is <em>only</em> allowed in modular files;
+<code>make fix-repo</code> flattens it into <code>modeling_qwen2_5_omni.py</code>. Three idioms worth recognizing:</p>
+<ul>
+<li><code>class Qwen2MLP(Qwen2_5_VLMLP): pass</code> (:1682) — pure rename/copy.</li>
+<li><code>tokens_per_second = AttributeError()</code> (:192) — modular syntax for <em>deleting</em> an inherited config field.</li>
+<li>The comment at :1650: <code>Qwen2_5OmniAttention</code> re-implements <code>__init__</code> only to drop a divisibility
+check, because the Talker checkpoint's <code>hidden_size</code> isn't divisible by <code>num_heads</code>
+(it relies on an explicit <code>head_dim=128</code>, config:373).</li>
+</ul>
+</div>
+
+<div class="check-box box">
+<span class="tag">✅ Self-check</span>
+<details><summary>1. Why does the Talker consume hidden states <em>and</em> the sampled text token embeddings, not just one of them?</summary>
+Hidden states carry prosody-relevant context (tone, attitude) <em>before</em> the full text exists — needed for streaming —
+but they encode <em>semantic</em> similarity, so phonetically different words ("write" vs "compose") can have nearly identical
+representations. The discrete sampled token pins down which word was actually said. (§2.3 Speech; you'll see the sum
+implemented at :3850-3851.)</details>
+<details><summary>2. The whole system is called "end-to-end". What would the non-end-to-end alternative be, and what latency cost does it carry?</summary>
+Run an LLM to completion, then hand the finished text to a separate TTS system. That serializes the two stages (speech
+can't start until text finishes) and discards paralinguistic context (emotion, emphasis) that never survives into plain text.
+Thinker–Talker lets speech-token generation begin while text is still streaming out.</details>
+<details><summary>3. Which sub-modules are initialized from which pre-existing checkpoints?</summary>
+Thinker LLM ← Qwen2.5-7B; vision encoder ← Qwen2.5-VL's ViT; audio encoder ← Whisper-large-v3 (§3 Pre-training). The Talker
+and Token2Wav are trained for this system.</details>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="s2"><span class="day">Session 2</span>Perception: the processor and the audio/vision encoders</h2>
+
+<div class="paper-box box">
+<span class="tag">📄 Paper reading</span>
+<p>§2.2 Perceivation (first half: "Text, Audio, Image and Video (w/o Audio)") and §2.4 "Support Prefilling".
+Key numbers to retain: 16 kHz audio, 128-channel mel with 25 ms window / 10 ms hop, ~40 ms per audio token,
+2 s attention blocks, ViT patch size 14, 2×2 token merging.</p>
+</div>
+
+<h3>2a. The processor: from raw media to tensors</h3>
+<div class="code-box box">
+<span class="tag">🔍 Code tour — <code>processing_qwen2_5_omni.py</code></span>
+<p><code>Qwen2_5OmniProcessor.__call__</code> (processing:119) orchestrates four sub-processors (tokenizer, image
+processor, video processor, Whisper feature extractor) and then rewrites the prompt string:</p>
+<ol>
+<li><b>Audio</b> → mel features, always padded to max length, with a <code>feature_attention_mask</code> (processing:140-150).
+The number of LLM tokens each clip will occupy is precomputed with the double-downsampling formula
+<code>(((L−1)//2+1) − 2)//2 + 1</code> — conv stride 2, then pool stride 2.</li>
+<li><b>Images/videos</b> → flattened patches plus <code>image_grid_thw</code>/<code>video_grid_thw</code> (T×H×W patch-grid
+shapes). For videos it also computes <code>video_second_per_grid</code> = temporal_patch_size / fps (processing:167) —
+the real-time duration of one temporal grid step, which TMRoPE needs.</li>
+<li><b>Placeholder expansion</b> (<code>replace_multimodal_special_tokens</code>, processing:199): each single
+<code>&lt;|AUDIO|&gt;</code> / <code>&lt;|IMAGE|&gt;</code> / <code>&lt;|VIDEO|&gt;</code> token in the chat template is replaced by exactly as many
+placeholder tokens as the encoder will emit features, so a later <code>masked_scatter</code> can splice features in 1:1.</li>
+</ol>
+<p>The most interesting branch is <code>use_audio_in_video=True</code> (processing:232-262): instead of emitting all video
+tokens then all audio tokens, it computes each video token's <em>timestamp</em> (frame index × second_per_grid × 25) and
+each audio token's timestamp (1 token = 40 ms), then splits both streams into 2-second chunks
+(<code>tokens_per_chunk = 25 × 2 = 50</code>, processing:245) and emits them interleaved:
+<code>[vision_bos][audio_bos] video-chunk₀ audio-chunk₀ video-chunk₁ audio-chunk₁ … [audio_eos][vision_eos]</code>.</p>
+</div>
+<div class="why-box box">
+<span class="tag">💡 Why interleave in 2-second chunks?</span>
+<p>In a streaming conversation the model must attend to "what was on screen while this was being said". If a 60 s video put
+all ~1,500 video tokens before all ~1,500 audio tokens, a causal LLM prefilling chunk-by-chunk couldn't see the audio for
+frame 1 until the entire video had arrived. Chunked interleaving keeps sight and sound of the same 2 s adjacent in the
+sequence — the shared self-attention does the fusion. This is the "time-interleaving method" of §2.2, and it's implemented
+twice, in perfect mirror: once in the processor (string level) and once in <code>get_rope_index</code> (position level, Session 3).</p>
+</div>
+
+<h3>2b. The audio encoder: Whisper, made streamable</h3>
+<div class="code-box box">
+<span class="tag">🔍 Code tour — <code>Qwen2_5OmniAudioEncoder</code> (:1303)</span>
+<p>The layer stack is inherited from Qwen2-Audio (itself Whisper-shaped): two convs then 32 transformer layers
+(<code>d_model</code> 1280). What's new is everything around attention granularity. Trace <code>forward</code> (:1349):</p>
+<pre><code>padded_feature, chunk_lengths = chunk_and_pad_features(input_features, feature_lens, self.n_window)  # :1358
+...
+padded_embed = gelu(self.conv1(padded_feature)) * padded_mask     # stride 1   :1372
+padded_embed = gelu(self.conv2(padded_embed))                     # stride 2 → 20ms/frame :1373
+padded_embed = padded_embed + positional_embedding[...]           # sinusoidal, restarts per chunk :1374
+hidden_states = index_select(..., valid_indices)                  # drop padding, pack flat :1377
+for encoder_layer in self.layers:                                 # attention within chunks only,
+    hidden_states = encoder_layer(hidden_states, cu_seqlens=cu_seqlens)  # via cu_seqlens :1379-1385
+hidden_states = (hidden_states[pool_indices] + hidden_states[pool_indices+1]) / 2  # stride-2 avg pool → 40ms :1388
+hidden_states = self.proj(self.ln_post(hidden_states))            # 1280 → 3584 (LLM width) :1389</code></pre>
+<ul>
+<li><code>chunk_and_pad_features</code> (:71): splits each clip into chunks of <code>n_window×2 = 200</code> mel frames = <b>2 seconds</b>.</li>
+<li><code>get_audio_cu_seqlens</code> (:106): cumulative chunk boundaries in flash-attention style — each chunk is an
+independent attention sequence, so <b>no token attends across a 2 s boundary</b>. This replaces Whisper's full attention
+over 30 s windows.</li>
+<li>Time math: 10 ms/mel-frame → conv2 stride 2 → 20 ms → avg-pool stride 2 → <b>40 ms per output token</b>, matching the paper.</li>
+<li>The helpers accept precomputed results via <code>kwargs</code> (the <code>kwargs.pop(...)</code> pattern, :89-93) —
+this makes the graph traceable/compilable when an inference framework precomputes the index tensors.</li>
+</ul>
+</div>
+<div class="why-box box">
+<span class="tag">💡 Why block-wise attention in the encoders?</span>
+<p>§2.4: chunked prefill. With full attention, encoding audio is all-or-nothing — you can't produce any representation
+until the whole clip is loaded. With 2 s blocks, each block's representation is final the moment that block ends, so the
+LLM can prefill incrementally while the user is still speaking. The division of labor stated in the abstract: encoders own
+<em>local perception</em>, the LLM owns <em>long-sequence modeling</em> via its shared attention.</p>
+</div>
+
+<h3>2c. The vision encoder: Qwen2.5-VL's ViT, reused</h3>
+<div class="code-box box">
+<span class="tag">🔍 Code tour — <code>Qwen2_5OmniVisionEncoder</code> (:1570)</span>
+<ul>
+<li>Native-resolution ViT: images of any size are cut into 14×14 patches and packed into one sequence (no square resize);
+videos group 2 frames per temporal patch; a single image is duplicated into 2 identical frames for consistency (§2.2).</li>
+<li>Windowed attention with periodic full-attention layers: in <code>forward</code> (:1623-1634), most blocks attend within
+small spatial windows (<code>cu_window_seqlens</code>), but blocks listed in <code>fullatt_block_indexes</code>
+(default <code>[7, 15, 23, 31]</code>, :172) get image-wide attention — a compute/quality compromise from Qwen2.5-VL.</li>
+<li>The <code>merger</code> MLP fuses each 2×2 patch group into one token (<code>spatial_merge_size=2</code>) and projects to
+3584 — so LLM-side vision token count is patches/4. Note <code>forward</code> returns the merged tokens in
+<code>pooler_output</code>, and the Thinker uses <em>that</em> (:1941, :1951), while audio uses <code>last_hidden_state</code>.</li>
+</ul>
+</div>
+
+<h3>2d. Splicing features into the token sequence</h3>
+<div class="code-box box">
+<span class="tag">🔍 Code tour — <code>Qwen2_5OmniThinkerForConditionalGeneration.forward</code>, step "2. Merge" (:1929-1956)</span>
+<pre><code>inputs_embeds = self.get_input_embeddings()(input_ids)          # placeholders embed to junk...
+audio_features = self.get_audio_features(...)                   # (total_audio_tokens, 3584)
+_, _, audio_mask = self.get_placeholder_mask(input_ids, ...)    # where input_ids == audio_token_id
+inputs_embeds = inputs_embeds.masked_scatter(audio_mask, audio_features)   # ...then get overwritten</code></pre>
+<p><code>get_placeholder_mask</code> (:1798) also validates that placeholder count == feature count, raising the classic
+"Image features and image tokens do not match" error otherwise. This is why the processor's expansion arithmetic
+(Session 2a) must exactly agree with the encoders' downsampling arithmetic.</p>
+</div>
+
+<div class="check-box box">
+<span class="tag">✅ Self-check</span>
+<details><summary>1. A 6.5-second audio clip is processed. How many chunks does the encoder make, and how many LLM tokens result?</summary>
+6.5 s = 650 mel frames. Chunks of 200: ⌈650/200⌉ = 4 chunks (200, 200, 200, 50 — see the tail-chunk logic at :95-99).
+LLM tokens: ((650−1)//2+1 − 2)//2 + 1 = (325−2)//2+1 = 162. Sanity check: 162 × 40 ms ≈ 6.48 s. ✓</details>
+<details><summary>2. Why does the sinusoidal positional embedding get added <em>per padded chunk</em> (:1374) rather than over the whole clip?</summary>
+Each 2 s chunk is an independent attention sequence, so positions restart from 0 within each chunk. Global ordering
+isn't the encoder's job — it's carried by TMRoPE inside the LLM. This also makes every chunk's computation identical
+regardless of where it sits in the clip: exactly what streaming needs.</details>
+<details><summary>3. Both the audio path and the vision path end in a projection to 3584. What fails if you skip it?</summary>
+3584 is the Thinker's hidden size; <code>masked_scatter</code> writes features directly into <code>inputs_embeds</code>,
+so encoder outputs must live in the same space as text embeddings. (Audio: <code>self.proj</code> :1330/1389; vision: the
+merger's <code>out_hidden_size=3584</code>, config docstring :170.)</details>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="s3"><span class="day">Session 3</span>TMRoPE: time-aligned multimodal position embeddings</h2>
+
+<div class="paper-box box">
+<span class="tag">📄 Paper reading</span>
+<p>§2.2 "Video and TMRoPE" (Figure 3). If M-RoPE is new to you, skim the Qwen2-VL paper's position-embedding section
+first — TMRoPE = M-RoPE + <em>absolute</em> temporal IDs where one ID = 40 ms.</p>
+</div>
+
+<h3>The idea in three steps</h3>
+<ol>
+<li><b>Factorize RoPE into (temporal, height, width).</b> The rotary dimensions are split into three groups
+(<code>mrope_section</code> in the rope parameters); each group rotates by its own position ID.</li>
+<li><b>Degenerate gracefully.</b> Text and audio use identical IDs on all three axes → exactly classic 1-D RoPE.
+Images freeze the temporal ID and vary height/width IDs by patch location.</li>
+<li><b>Anchor time absolutely.</b> Temporal IDs advance at 25 IDs per second (<code>position_id_per_seconds=25</code>,
+config:267), i.e. <b>one ID = 40 ms</b> — the same granularity as one audio token. Video frames get
+<code>t_index = frame × second_per_grid × 25</code>, so a 0.5 fps video and its audio track land on the same temporal scale.
+Each new modality segment starts at (max ID so far) + 1.</li>
+</ol>
+
+<div class="code-box box">
+<span class="tag">🔍 Code tour — <code>get_rope_index</code> (:836-1123)</span>
+<p>This ~290-line method on <code>Qwen2_5OmniPreTrainedModelForConditionalGeneration</code> is the heart of the model.
+Read the excellent docstring example (:849-877) first, then walk the loop, which scans the token list segment by segment:</p>
+<ul>
+<li><b>Pure audio</b> (:960-981): text before it counts up 1-D; then bos (1 ID), then <code>audio_len</code> IDs counting up
+on all 3 axes (length from the same downsampling formula, :971), then eos.</li>
+<li><b>Image</b> (:983-1010): <code>t_index = arange(grid_t) × 25</code> then
+<code>get_llm_pos_ids_for_vision</code> (:779) expands to (t, h, w) triples per merged patch.</li>
+<li><b>Video without audio</b> (:1012-1041): same, but
+<code>t_index = arange(grid_t) × second_per_grid × 25</code> (:1026-1028) — dynamic frame rate handled here.</li>
+<li><b>Video with audio</b> (:1043-1099): computes both streams' position IDs, then
+<code>get_chunked_index</code> (:799) splits each by 2 s of <em>temporal-ID range</em>
+(<code>t_ntoken_per_chunk = 25 × 2 = 50</code>, :1068) and appends them alternately — the position-level mirror of the
+processor's string-level interleave. Crucially, video chunk₀ and audio chunk₀ get <em>overlapping temporal IDs</em>: order
+in the sequence differs, but position-in-time agrees.</li>
+<li><b>Deltas</b> (:1112): <code>mrope_position_deltas = max_id + 1 − seq_len</code>. Because vision tokens share IDs across a
+patch grid, the max position ID is usually far smaller than the sequence length; the delta lets decoding continue from the
+right place.</li>
+</ul>
+</div>
+
+<div class="code-box box">
+<span class="tag">🔍 Code tour — position IDs during decoding (:1963-1984)</span>
+<pre><code>if past_key_values_length == 0 or self.rope_deltas is None:      # prefill: full 3-D computation
+    position_ids, rope_deltas = self.get_rope_index(...)
+    self.rope_deltas = rope_deltas                                # cache the offset
+else:                                                             # decode: just count up
+    delta = past_key_values_length + self.rope_deltas
+    position_ids = arange(seq_length) + delta                     # same ID on all 3 axes</code></pre>
+<p>Generated text is 1-D again — the 3-D structure only matters inside multimodal segments. Note
+<code>prepare_inputs_for_generation</code> (:2052) forces <code>position_ids=None</code> every step precisely so this branch logic runs.</p>
+</div>
+
+<div class="why-box box">
+<span class="tag">💡 Why absolute time, not just order?</span>
+<p>Plain M-RoPE increments video temporal IDs by 1 per frame regardless of fps — position then encodes <em>frame order</em>
+but not <em>duration</em>, and audio (a fixed 40 ms/token stream) can't be aligned to it. Fixing 1 ID = 40 ms gives every
+modality a shared clock: co-occurring sight and sound get near-identical temporal rotations, which is what lets shared
+attention discover audio-visual correspondence (the paper's OmniBench results are the payoff). It also means the model
+can in principle distinguish a 2× slow-motion video from a normal one.</p>
+</div>
+
+<div class="check-box box">
+<span class="tag">✅ Self-check</span>
+<details><summary>1. A video is sampled at 2 fps with temporal_patch_size 2 (so second_per_grid = 1.0) and has 3 temporal grids of 4×4 merged patches. What are its 48 temporal position IDs?</summary>
+t_index = [0, 25, 50] (arange(3) × 1.0 s × 25). Each repeats 16 times (4×4 patches): sixteen 0s, sixteen 25s, sixteen 50s.
+Height IDs cycle 0,0,1,1,2,2,3,3… per row; width IDs cycle 0..3. See <code>get_llm_pos_ids_for_vision</code> :789-794.</details>
+<details><summary>2. In the audio-in-video interleave, why is <code>get_chunked_index</code> keyed on temporal-ID <em>values</em> (ranges of 50) rather than just counting 50 tokens?</summary>
+Token counts per 2 s differ by modality and resolution: 2 s of audio is exactly 50 tokens, but 2 s of video could be 32 or
+512 tokens depending on frame size/rate. Chunking by ID value groups "everything whose timestamp falls in [2k s, 2k+2 s)"
+regardless of how many tokens represent it.</details>
+<details><summary>3. Why can <code>mrope_position_deltas</code> be negative, and what would go wrong if decoding ignored it?</summary>
+A 1000-token image region might span only ~50 distinct temporal/spatial IDs, so max_id+1 &lt; seq_len ⇒ negative delta.
+Ignoring it would give the first generated token position ID = seq_len, leaving a huge gap after the prompt's max ID —
+the model would see the answer as "far in the future" relative to the question, distorting attention's distance decay.</details>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="s4"><span class="day">Session 4</span>Thinker: multimodal understanding and text generation</h2>
+
+<div class="paper-box box">
+<span class="tag">📄 Paper reading</span>
+<p>§2.3 "Text", §4.1–4.2 (post-training data format), and skim §5.1 tables — note where Qwen2.5-Omni lands relative to
+Qwen2.5-7B (text), Qwen2.5-VL-7B (vision), Qwen2-Audio (audio), and Table 4 (voice instructions vs text instructions).</p>
+</div>
+
+<div class="code-box box">
+<span class="tag">🔍 Code tour — <code>Qwen2_5OmniThinkerForConditionalGeneration</code> (:1699)</span>
+<ul>
+<li><b>Composition</b> (:1705-1714): <code>audio_tower</code> + <code>visual</code> + <code>model</code>
+(<code>Qwen2_5OmniThinkerTextModel</code>, a one-line subclass of Qwen2.5-VL's text model, :1686) + untied <code>lm_head</code>.
+The text stack is stock Qwen2.5-7B: 28 layers, hidden 3584, 28 Q heads / 4 KV heads, SwiGLU 18944, RMSNorm,
+RoPE θ=10⁶, vocab 152064 (config:172-192).</li>
+<li><b>forward</b> (:1851): embed → splice features (Session 2d) → compute/reuse TMRoPE positions (Session 3) → decoder →
+<code>lm_head</code>. Loss is ordinary causal cross-entropy on text labels (:2000-2003) — nothing speech-related here.</li>
+<li><b>Generation plumbing</b> (:2014-2059): after the first step, <code>pixel_values</code>/<code>input_features</code> are
+dropped from model inputs (:2054-2058) — encoders run once at prefill; multimodal context persists only in the KV cache.</li>
+<li>The output dataclass carries <code>rope_deltas</code> (:1133) so the wrapper and Talker can reuse them.</li>
+</ul>
+</div>
+
+<div class="why-box box">
+<span class="tag">💡 Why is the Thinker's text quality "between Qwen2-7B and Qwen2.5-7B"?</span>
+<p>Table 1 shows the omni model gives up a few points vs its pure-text initializer (e.g. GSM8K 88.7 vs 91.6) — the
+cost of splitting the training budget across modalities. The headline result is Table 4: with <em>spoken</em>
+instructions, Qwen2.5-Omni scores near its own text-instruction level (GSM8K 85.4 vs Qwen2-Audio's 18.4). That gap
+closure — voice as a first-class input, not a lossy ASR front-end — is the practical payoff of end-to-end training on
+speech instructions.</p>
+</div>
+
+<div class="check-box box">
+<span class="tag">✅ Self-check</span>
+<details><summary>1. During assistant-turn decoding, can the Thinker still "see" the video pixels it was shown?</summary>
+Not the pixels — <code>prepare_inputs_for_generation</code> nulls them after step 1. It sees their <em>keys/values</em> in
+every layer's cache, which is all attention ever needed. This is why re-encoding cost is O(prompt) not O(prompt+generation).</details>
+<details><summary>2. <code>_tied_weights_keys</code> ties <code>lm_head.weight</code> to <code>embed_tokens.weight</code> (:1702), yet ThinkerConfig sets <code>tie_word_embeddings=False</code> (config:273). Reconcile.</summary>
+The mapping declares which weights <em>would</em> tie if tying is enabled; the config flag disables it for the 7B checkpoint
+(large Qwen models untie). The 3B variant ties them. Check <code>config.json</code> of a checkpoint to see which applies.</details>
+<details><summary>3. What does the ChatML example in §4.1 imply the model must learn that a caption-trained model wouldn't?</summary>
+The second exchange has an <em>empty</em> user text — the instruction ("describe the person in front of you") arrives inside
+the video's audio track. The model must treat in-band speech as the instruction channel, i.e. audio-visual instruction
+following, not just media description.</details>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="s5"><span class="day">Session 5</span>Talker: dual-track speech-token generation</h2>
+
+<div class="paper-box box">
+<span class="tag">📄 Paper reading</span>
+<p>§2.3 "Speech" and §4.3 Talker (three-stage training: ICL continuation → DPO for stability → multi-speaker fine-tuning,
+including Eq. 1). Also re-read the streaming motivation in §2.4 items (2).</p>
+</div>
+
+<h3>5a. What the Talker is</h3>
+<p>A second autoregressive decoder (same Qwen2-shaped architecture; config defaults at config:296-404) whose vocabulary is
+not text but <b>8448 speech-codec tokens</b> from <code>qwen-tts-tokenizer</code> — a learned discrete representation of
+audio that a causal decoder can later turn into a waveform. "Dual-track" means that at every step its input is the sum of
+two aligned streams: its own previous codec token, and the Thinker's representation for the text being spoken.</p>
+<div class="code-box box">
+<span class="tag">🔍 Code tour — <code>Qwen2_5OmniTalkerForConditionalGeneration</code> (:2095)</span>
+<ul>
+<li><code>self.model.embed_tokens = Embedding(8448, embedding_size=3584)</code> (:2092) — codec embeddings live in the
+<em>Thinker's</em> width so they can be summed with Thinker hidden states, then
+<code>thinker_to_talker_proj</code> (:2103, applied :2229) maps the sum into the Talker's own hidden size.</li>
+<li><code>codec_head</code> (:2107) predicts the next codec token. Special codec ids (config:358-361):
+bos 8293, eos 8294, pad 8292, mask 8296; special <em>text</em>-side ids tts_text_start/end/pad 151860/151861/151859.</li>
+<li>The streaming trick, <code>forward</code> (:2222-2228):
+<pre><code>codec_embeds = self.get_input_embeddings()(input_ids)       # my previous codec token
+inputs_embeds = codec_embeds + thinker_reply_part[:, :1, :]  # + next Thinker text representation
+if thinker_reply_part.shape[1] > 1:
+    thinker_reply_part = thinker_reply_part[:, 1:, :]        # consume the queue one per step</code></pre>
+The trimmed queue is threaded through generation via the output dataclass and
+<code>_update_model_kwargs_for_generation</code> (:2302-2316). Codec tokens outnumber text tokens (~25 Hz speech vs a few
+text tokens/s), so once the queue drains to its final entry (an eos+pad embedding pair appended at :3869-3876), the Talker
+keeps conditioning on that terminal state while finishing the utterance.</li>
+<li>Position IDs: the Talker calls the same <code>get_rope_index</code>, but on <code>input_text_ids</code> —
+the <em>Thinker's</em> token ids — so its positional geometry matches the context it inherited (:2188-2199).</li>
+</ul>
+</div>
+
+<h3>5b. How the wrapper wires Thinker → Talker</h3>
+<div class="code-box box">
+<span class="tag">🔍 Code tour — <code>Qwen2_5OmniForConditionalGeneration.generate</code> (:3683-3906)</span>
+<p>Read this top to bottom once; it is the whole system in one function.</p>
+<ol>
+<li><b>Kwarg routing</b> (:3751-3775): <code>thinker_*</code>/<code>talker_*</code>/<code>token2wav_*</code> prefixes route
+to each sub-model's generate. Defaults for the Talker: sampling with top-k 40, top-p 0.8, T 0.9, repetition penalty 1.05
+(:3690-3695).</li>
+<li><b>Thinker runs first</b> (:3784) with <code>output_hidden_states=True</code> — we keep, for the prompt and every
+generated token, the embedding-layer output (<code>hidden_states[step][0]</code>) and the last layer
+(<code>hidden_states[step][-1]</code>) (:3823-3828).</li>
+<li><b>Multimodal positions are zeroed</b> in the copy sent to the Talker (:3790-3821): wherever the prompt had
+audio/image/video features, the embedding row is replaced by zeros.</li>
+<li><b>Prompt-side input</b> (:3840-3861): Talker sees Thinker's (last_hidden + token_embed) per prompt position, then a
+speaker-specific <code>bos_token</code> embedding, then the first reply token's representation; its own codec track over
+the prompt is all <code>codec_mask</code> tokens, then codec_pad, codec_bos (:3840-3847) — with matching embeddings added
+inside <code>forward</code> at :2201-2207.</li>
+<li><b>Reply-side queue</b>: <code>thinker_reply_part</code> = (last_hidden + token_embed) for reply tokens 2…N, plus
+tts_text_eos and tts_text_pad embeddings (:3850, :3869-3876) — the queue of Session 5a.</li>
+<li><b>Decode codes</b> (:3884-3893), strip bos/eos, and hand to Token2Wav (Session 6).</li>
+</ol>
+</div>
+<div class="why-box box">
+<span class="tag">💡 Three "why"s in one wiring</span>
+<ul>
+<li><b>Why zero out multimodal embeddings for the Talker?</b> The Talker gets the <em>last-layer</em> hidden states, where
+multimodal content is already contextualized into neighboring positions; feeding raw modality features again would let it
+try to "speak the image". Zeros keep sequence geometry (and TMRoPE positions) intact while muting content it shouldn't vocalize.</li>
+<li><b>Why per-speaker <code>bos_token</code>?</b> Voice selection is done by a control token (from <code>spk_dict.pt</code>
+via <code>speaker_map</code>, :3776, :3830) — the same mechanism as §4.3's multi-speaker instruction fine-tuning.</li>
+<li><b>Why no timestamp alignment between text and codec tokens?</b> §2.3: the Talker learns a monotonic soft alignment
+end-to-end (attention does the work), so training data doesn't need word-level timing labels — a major data-pipeline
+simplification vs classic TTS.</li>
+</ul>
+</div>
+<div class="why-box box">
+<span class="tag">💡 Training the Talker (§4.3)</span>
+<ol>
+<li><b>ICL / continuation pre-training:</b> next-codec-token prediction on dialogues with spoken responses; timbre
+disentanglement so rare text patterns don't lock to specific voices.</li>
+<li><b>DPO for stability (Eq. 1):</b> triplets (context, good speech, bad speech) ranked by reward built from word error
+rate + punctuation-pause error rate — directly attacking hallucinated/dropped words and broken pauses. Table 9 shows the
+RL model cuts test-hard WER from 7.97 → 6.54.</li>
+<li><b>Multi-speaker SFT:</b> teaches specific voices (Chelsie, Ethan, …) and lifts naturalness to ~human NMOS (Table 10).</li>
+</ol>
+</div>
+
+<div class="check-box box">
+<span class="tag">✅ Self-check</span>
+<details><summary>1. Why must the two tracks be <em>summed</em> per position rather than concatenated along the sequence?</summary>
+Summation keeps one position per timestep, so the codec track and the semantic track stay time-locked as the sequence
+grows — the Talker's causal attention sees "one fused stream". Sequence-concatenation (à la prefix conditioning) would
+break streaming: you'd have to re-append Thinker states as they arrive, interleaving two growing suffixes.</details>
+<details><summary>2. What limits <code>generate</code> to batch size 1 when audio output is on (:3733-3734)?</summary>
+The Talker consumes a per-sample queue of Thinker reply representations whose lengths differ per sample, and Token2Wav's
+<code>sample()</code> asserts batch 1 (:3462-3463). Batched text-only generation is fine.</details>
+<details><summary>3. Trace what happens if the Thinker emits 12 text tokens but the utterance needs ~200 codec tokens.</summary>
+Steps 1–11 each consume one queued reply embedding; from step ~12 on, <code>thinker_reply_part</code> is down to the final
+pad embedding, which (per the guard at :2226-2227) is never popped — every remaining codec step conditions on
+codec_embed + pad_embed until the Talker samples codec eos (8294, also 8292 in the default
+<code>talker_eos_token_id</code> list :3694).</details>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="s6"><span class="day">Session 6</span>Token2Wav: flow-matching DiT + BigVGAN vocoder</h2>
+
+<div class="paper-box box">
+<span class="tag">📄 Paper reading</span>
+<p>§2.4 "Streaming Codec Generation" (Figure 4). Background if new to you: flow matching trains a network
+v(x, t) so that integrating dx/dt = v from noise (t=0) to t=1 yields a data sample — like diffusion, but learned as a
+deterministic ODE with straighter paths, so ~10 solver steps suffice. DiT = a transformer denoiser whose layers are
+modulated by the timestep t (AdaLayerNorm-Zero).</p>
+</div>
+
+<h3>6a. Codec tokens → mel spectrogram (DiT)</h3>
+<div class="code-box box">
+<span class="tag">🔍 Code tour — <code>Qwen2_5OmniToken2WavDiTModel</code> (:3353)</span>
+<ul>
+<li><b>Shape:</b> 22 layers, hidden 1024, 16 heads (head_dim 64), mel_dim 80; each codec token is repeated
+<code>repeats=2</code> mel frames (<code>DiTCodecEmbedding</code>, :2722), so an utterance of N codes → 2N mel frames
+(:3460).</li>
+<li><b>Conditioning</b> (<code>DiTInputEmbedding</code>, :2677): concat [noisy mel ‖ speaker-verification embedding from an
+ECAPA-TDNN encoder over a reference mel (:2704) ‖ codec embedding ‖ speaker vector] → project to 1024. The reference mel
+and conditioning vector come from <code>spk_dict.pt</code> — this is voice cloning by conditioning.</li>
+<li><b>Timestep modulation:</b> <code>Qwen2_5_OmniAdaLayerNormZero</code> (:2728) produces shift/scale/gate for attention
+and MLP from the time embedding — the standard DiT recipe.</li>
+<li><b>Classifier-free guidance:</b> conditional and unconditional branches run as a doubled batch
+(:2696-2700), combined as <code>guided + (guided − null) × 0.5</code> (:3500-3501).</li>
+<li><b>Sampling</b> (<code>sample</code>, :3450): start from Gaussian noise over all 2N frames, integrate with a
+hand-rolled RK4 ODE solver (:3292) over 10 timesteps warped by "sway sampling"
+(:3508-3509, coefficient −1.0 concentrates steps near t=0 where the trajectory bends most — an F5-TTS trick).</li>
+<li><b>Quirk to notice:</b> RoPE is applied to only the first attention head (:2823-2825) — a faithful port of a training
+artifact, kept for checkpoint compatibility. Positions elsewhere come from content + block structure.</li>
+</ul>
+</div>
+
+<h3>6b. The sliding-window block attention</h3>
+<div class="code-box box">
+<span class="tag">🔍 Code tour — the paper's Figure 4, in three code fragments</span>
+<pre><code># 1. Every frame gets a block index (block_size = 24 mel frames)        :3389-3397
+block_diff = block_j - block_i          # how many blocks ahead (+) or behind (−) key j is from query i
+
+# 2. Per-layer window (DiTDecoderLayer.forward)                         :2899-2900
+attention_mask = (block_diff >= -look_backward_block) & (block_diff <= look_ahead_block)
+
+# 3. Which layers get which window (config:455-457 → __init__ :3374-3382)
+block_size = 24;  look_ahead_layers = [10];  look_backward_layers = [0, 20]</code></pre>
+<p>So each of the 22 layers sees its own block, layers 0 and 20 additionally see 1 block back, and layer 10 sees 1 block
+ahead. Because receptive fields compose across layers, the network's total receptive field is
+2 blocks back + current + 1 block ahead = <b>4 blocks</b> — exactly the paper's "lookback of 2 blocks and a lookahead of
+1 block".</p>
+</div>
+<div class="why-box box">
+<span class="tag">💡 Why cap the receptive field?</span>
+<p>First-packet latency. With full attention, mel frame 0 depends on the entire utterance — no audio can play until every
+codec token exists. With a 4-block field, the first chunk's mel is final once ~1 block of future context exists, so
+waveform synthesis can start after a fixed, small delay and proceed chunk-by-chunk regardless of utterance length. The
+lookahead isn't free (it *is* the latency), but 1 block ≈ 24 frames of context markedly improves boundary quality vs
+zero lookahead. The same chunking is reused for BigVGAN, whose convolutional receptive field is fixed anyway.
+Note the HF implementation runs the pipeline offline (whole utterance at once) — the block mask preserves the
+<em>trained behavior</em>; true streaming schedulers live in the release repos (e.g. vLLM's omni support).</p>
+</div>
+
+<h3>6c. Mel → waveform (BigVGAN)</h3>
+<div class="code-box box">
+<span class="tag">🔍 Code tour — <code>Qwen2_5OmniToken2WavBigVGANModel</code> (:3215)</span>
+<ul>
+<li>Upsampling stack with rates (5, 3, 2, 2, 2, 2) — ×240 total: one 80-bin mel frame → 240 waveform samples
+(config:496).</li>
+<li>Anti-aliased <b>SnakeBeta</b> activation (:2913): x + (1/β)·sin²(αx), with the periodic nonlinearity sandwiched
+between learned low-pass up/down-sampling filters (<code>kaiser_sinc_filter1d</code>, :2954;
+<code>Qwen2_5OmniAntiAliasedActivation1d</code>, :3053). Periodic activations give an inductive bias for waveform
+periodicity (pitch); anti-aliasing prevents the harmonics they create from folding back as audible artifacts.</li>
+<li>Input mels are min-max de-normalized from dB (:3260-3272).</li>
+<li>Numerics: the wrapper forces the whole Token2Wav to fp32 and falls back from flash-attention/eager to SDPA
+(:3530-3543) — ODE integration in half precision accumulates visible error.</li>
+</ul>
+</div>
+
+<div class="check-box box">
+<span class="tag">✅ Self-check</span>
+<details><summary>1. Derive the receptive field claim: why do <em>two</em> look-backward layers give 2 blocks of history, not 1?</summary>
+Information propagates layer-by-layer. After layer 0 (lookback 1), each position holds info from block b−1. Layers 1–19
+(window 0) mix within-block only. Layer 20 (lookback 1) pulls from block b−1's representations, which already contain
+block b−2 — so depth composes the two 1-block windows into a 2-block history. Same logic gives layer 10's single
+lookahead block. Total: b−2 … b+1 = 4 blocks.</details>
+<details><summary>2. Why does CFG make sense here at all — what is the "class" being dropped?</summary>
+Two conditions are dropped in the null branch: speaker conditioning (reference mel + speaker embedding zeroed, :2698-2699)
+and the codec content (embedding of zeroed codes, :2718-2719 via <code>drop_code</code>). Extrapolating away from the
+unconditional prediction (scale 0.5) sharpens adherence to both the spoken content and the target voice.</details>
+<details><summary>3. Roughly how many waveform samples does one Talker codec token produce?</summary>
+1 code → 2 mel frames (repeats=2) → 2 × 240 = 480 samples ≈ 20 ms at 24 kHz output. So the Talker emits speech at
+~50 codec tokens per second.</details>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="s7"><span class="day">Session 7</span>Training recipe, evaluation, and running it yourself</h2>
+
+<div class="paper-box box">
+<span class="tag">📄 Paper reading</span>
+<p>§3 Pre-training, §4 Post-training (re-read), §5 Evaluation in full, §6 Conclusion.</p>
+</div>
+
+<h3>7a. The training pipeline, assembled</h3>
+<div class="table-wrap"><table>
+<tr><th>Phase</th><th>What trains</th><th>Data / objective</th></tr>
+<tr><td>Pre-train 1</td><td>Encoders + adapters (LLM <b>frozen</b>, from Qwen2.5; adapters first, then encoders)</td><td>Audio-text + image-text pairs; ground perception in the LLM's space</td></tr>
+<tr><td>Pre-train 2</td><td>Everything</td><td>+800 B image/video tokens, +300 B audio, +100 B video-with-audio, + pure text; hierarchical tags → natural-language prompts (from Qwen2-Audio)</td></tr>
+<tr><td>Pre-train 3</td><td>Everything</td><td>Sequence length 8192 → 32768 with long audio/video</td></tr>
+<tr><td>Post-train (Thinker)</td><td>Thinker</td><td>ChatML instruction data: text, vision, audio, mixed-modality dialogues</td></tr>
+<tr><td>Post-train (Talker)</td><td>Talker</td><td>Stage 1 ICL continuation → Stage 2 DPO (WER + pause rewards) → Stage 3 multi-speaker SFT</td></tr>
+</table></div>
+<p class="footnote">Note the freeze mirror in code: <code>Qwen2_5OmniAudioEncoder._freeze_parameters</code> (:1335) exists
+precisely for encoder-frozen fine-tuning setups.</p>
+
+<h3>7b. Results worth memorizing (one number per claim)</h3>
+<ul>
+<li><b>Omni fusion:</b> OmniBench avg <b>56.13%</b> vs Gemini-1.5-Pro 42.91% — SOTA by a wide margin (Table 8).</li>
+<li><b>No modality tax:</b> ≈ Qwen2.5-VL-7B on vision (MMMU 59.2 vs 58.6), beats Qwen2-Audio on audio (MMAU 65.6 vs 49.2).</li>
+<li><b>Voice as input:</b> speech-instructed GSM8K <b>85.4</b> vs text-instructed Qwen2-7B 82.3 (Table 4); VoiceBench avg 74.12.</li>
+<li><b>Voice as output:</b> SEED test-hard WER 6.54 after RL, beating CosyVoice2 (6.83); NMOS ≈ human (Table 10).</li>
+</ul>
+
+<h3>7c. Running it</h3>
+<div class="code-box box">
+<span class="tag">🔍 Minimal end-to-end usage</span>
+<pre><code>import soundfile as sf
+from transformers import Qwen2_5OmniForConditionalGeneration, Qwen2_5OmniProcessor
+
+model = Qwen2_5OmniForConditionalGeneration.from_pretrained(
+    "Qwen/Qwen2.5-Omni-7B", dtype="auto", device_map="auto")
+processor = Qwen2_5OmniProcessor.from_pretrained("Qwen/Qwen2.5-Omni-7B")
+
+conversation = [
+    {"role": "system", "content": [{"type": "text", "text":
+        "You are Qwen, a virtual human developed by the Qwen Team, Alibaba Group, "
+        "capable of perceiving auditory and visual inputs, as well as generating text and speech."}]},
+    {"role": "user", "content": [{"type": "video", "video": "clip.mp4"},
+                                  {"type": "text", "text": "What is being said in this video?"}]},
+]
+inputs = processor.apply_chat_template(
+    conversation, load_audio_from_video=True, add_generation_prompt=True,
+    tokenize=True, return_dict=True, return_tensors="pt",
+    video_fps=2, use_audio_in_video=True).to(model.device)
+
+text_ids, audio = model.generate(**inputs, speaker="Chelsie", use_audio_in_video=True)
+print(processor.batch_decode(text_ids, skip_special_tokens=True))
+sf.write("reply.wav", audio.reshape(-1).detach().cpu().numpy(), samplerate=24000)</code></pre>
+<p>Practical knobs, each traceable to code you've now read:</p>
+<ul>
+<li><code>use_audio_in_video</code> must match between processor and generate — it changes both token layout (Session 2a)
+and position IDs (Session 3).</li>
+<li><code>generation_mode="text"</code> (or loading with <code>enable_audio_output=False</code>, or
+<code>model.disable_talker()</code>) skips Talker + Token2Wav entirely (:3722-3723, :3626).</li>
+<li><code>speaker=</code> picks a voice from <code>spk_dict.pt</code> (:3725-3726); audio output requires batch size 1.</li>
+<li>Prefixed kwargs tune each stage independently: e.g. <code>thinker_max_new_tokens=512</code>,
+<code>talker_temperature=0.9</code>, <code>token2wav_num_steps=20</code> (:3751-3757).</li>
+</ul>
+</div>
+
+<h3>7d. Capstone exercises</h3>
+<ol>
+<li><b>Token accounting.</b> For a 10 s, 2 fps, 448×448 video with audio (<code>use_audio_in_video=True</code>): compute the
+number of video tokens, audio tokens, and the exact interleaved layout with temporal position IDs for the first two 2 s
+chunks. Verify by running the processor and inspecting <code>input_ids</code>.</li>
+<li><b>Latency analysis.</b> Using Session 6's numbers (block 24 mel frames, 4-block field, RK4 × 10 steps), estimate the
+theoretical first-audio-packet latency of a streaming deployment and identify which term dominates. Compare against the
+four latency sources in §2.4.</li>
+<li><b>Ablation thought-experiment.</b> Predict, mechanistically, what degrades if (a) TMRoPE's temporal IDs revert to
+per-frame increments; (b) the Talker gets only sampled token embeddings, no hidden states; (c) DiT lookahead becomes 0.
+Then check each prediction against the paper's stated motivation.</li>
+<li><b>Code archaeology.</b> <code>modeling_qwen2_5_omni.py</code> is generated. Pick <code>Qwen2_5OmniDecoderLayer</code>
+(modeling:1531) and trace which modular-file inheritance produced it. Then run <code>make fix-repo</code> after a trivial
+whitespace edit in the modular file and diff the regenerated file to see the machinery work.</li>
+<li><b>Extension reading.</b> Follow-ups that deepen each component: Mini-Omni (dual-track inspiration), F5-TTS &amp;
+flow matching (Lipman et al.) for the DiT, BigVGAN paper for the vocoder, CosyVoice 2 for the competing codec-LM design,
+and the Qwen3-Omni report for how this architecture evolved (MoE Thinker/Talker, multi-codebook codec).</li>
+</ol>
+
+<div class="check-box box">
+<span class="tag">✅ Final self-check — can you answer these cold?</span>
+<details><summary>1. Walk the complete life of the phrase "sure, here it is" from Thinker to loudspeaker.</summary>
+Thinker samples the text tokens; for each, its embedding-layer vector and final-layer hidden state are summed and queued
+(:3850). The Talker, per step, sums its previous codec-token embedding with the next queued vector, projects via
+<code>thinker_to_talker_proj</code>, and autoregressively emits ~50 codec tokens/s until codec-eos (:2222-2245). Codes are
+embedded and repeated ×2 into mel-frame slots; flow-matching RK4 integration under a 4-block attention window denoises
+Gaussian noise into an 80-bin mel conditioned on codes + speaker reference (:3450-3516); BigVGAN upsamples ×240 with
+anti-aliased Snake activations into the waveform (:3274-3290).</details>
+<details><summary>2. Name every place the constant "2 seconds" appears in this system.</summary>
+Audio encoder attention chunks (n_window=100 → 200 mel frames); processor audio/video interleave chunk
+(seconds_per_chunk=2); get_rope_index's t_ntoken_per_chunk = 50 IDs; ThinkerConfig.seconds_per_chunk. All four must agree —
+they are the same design decision expressed in four layers of the stack.</details>
+<details><summary>3. Why is "Thinker–Talker" a better answer to output interference than one LLM with an interleaved text+codec vocabulary?</summary>
+A single vocabulary forces one softmax to trade text quality against codec quality every step, and interleaving inflates
+sequence length inside the expensive 7B model. The split gives each output its own capacity and objective, keeps the 7B
+model text-only, and still shares all context (Talker reads Thinker's states + KV-visible history) — coordination without
+competition, trained jointly end-to-end.</details>
+</div>
+
+<hr style="border:none;border-top:1px solid var(--card-border);margin:3rem 0 1rem">
+<p class="footnote">Sources: <em>Qwen2.5-Omni Technical Report</em>, Qwen Team, arXiv:2503.20215 (Mar 2025);
+🤗 Transformers <code>src/transformers/models/qwen2_5_omni/</code> (line numbers as of this repo checkout).
+Line anchors reference <code>modular_qwen2_5_omni.py</code> unless prefixed with <code>processing:</code>,
+<code>config:</code>, or <code>modeling:</code>.</p>
+
+</main>
+</body>
+</html>
